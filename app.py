@@ -85,10 +85,13 @@ def fetch_confluence_page(page_id, confluence_url, confluence_user, confluence_t
 def generate_test_cases_groq(content_title, content_description, groq_api_key, groq_model):
     try:
         # Create the LLM chain using the GROQ API and the chosen model
+        # temperature = 0.0 => Deterministic (same output every time)
+        # temperature = 0.2 => Some randomness
+        # temperature = 1.0 => Very random/creative
         llm = ChatGroq(
             groq_api_key=groq_api_key,
             model=groq_model,
-            temperature=0.2
+            temperature=0.0  
         )
         # Escape curly braces in content to avoid format string issues
         safe_title = content_title.replace("{", "{{").replace("}", "}}")
@@ -257,3 +260,4 @@ if submitted:
 
 # --- Final Tips ---
 st.info("Never hard-code production secrets! Use Streamlit secrets or environment variables for all API keys and tokens.")
+
