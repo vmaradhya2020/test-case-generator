@@ -34,8 +34,18 @@ def extract_ticket_id(jira_input):
     match = re.search(r"([A-Z][A-Z0-9]+-\d+)", jira_input.strip(), re.IGNORECASE)
     return match.group(1) if match else None
 
+def normalize_confluence_url(confluence_url):
+    """Normalize Confluence URL by removing edit-v2 and fragments."""
+    # Remove fragment identifier (e.g., #Youth-and-Child-Discount)
+    confluence_url = confluence_url.split("#")[0]
+    # Replace /edit-v2/ with /pages/
+    confluence_url = confluence_url.replace("/edit-v2/", "/pages/")
+    return confluence_url
+
 def extract_confluence_page_id(confluence_url):
     """Extract Confluence page ID from URL."""
+    # Normalize URL first
+    confluence_url = normalize_confluence_url(confluence_url)
     # Pattern for URLs like /pages/4162551820/
     match = re.search(r"/pages/(\d+)", confluence_url)
     if match:
