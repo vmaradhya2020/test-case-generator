@@ -85,13 +85,10 @@ def fetch_confluence_page(page_id, confluence_url, confluence_user, confluence_t
 def generate_test_cases_groq(content_title, content_description, groq_api_key, groq_model):
     try:
         # Create the LLM chain using the GROQ API and the chosen model
-        # temperature = 0.0 => Deterministic (same output every time)
-        # temperature = 0.2 => Some randomness
-        # temperature = 1.0 => Very random/creative
         llm = ChatGroq(
             groq_api_key=groq_api_key,
             model=groq_model,
-            temperature=0.0  
+            temperature=0.0
         )
         # Escape curly braces in content to avoid format string issues
         safe_title = content_title.replace("{", "{{").replace("}", "}}")
@@ -99,8 +96,19 @@ def generate_test_cases_groq(content_title, content_description, groq_api_key, g
 
         prompt = ChatPromptTemplate.from_messages([
             ("system",
-                "You are an expert QA engineer. Write a thorough set of high-level functional, negative, and edge-case test scenarios given the content below. "
-                "Number each scenario. Format the output as a markdown table with columns: Test Case ID, Scenario Title, Scenario Description, Expected results. Output only the table, no explanations."
+                "You are a senior QA engineer with 15+ years of experience in software testing. "
+                "Analyze the given requirement thoroughly and generate detailed, actionable test cases.\n\n"
+                "RULES:\n"
+                "1. Cover ALL categories: Functional (positive flows), Negative (invalid inputs, error handling), "
+                "Boundary/Edge cases, UI/UX validation, Security checks, and Performance considerations.\n"
+                "2. Each test case MUST have clear, specific steps — not vague descriptions.\n"
+                "3. Expected results must be concrete and verifiable (e.g., 'Error message: Invalid email format' not just 'Show error').\n"
+                "4. Include preconditions where relevant in the Scenario Description.\n"
+                "5. Test Case IDs should follow format TC_001, TC_002, etc.\n"
+                "6. Generate at least 15-20 test cases to ensure comprehensive coverage.\n"
+                "7. Think about real-world user behavior — what would users actually do wrong?\n\n"
+                "FORMAT: Output ONLY a markdown table with columns: Test Case ID | Category | Scenario Title | Scenario Description | Test Steps | Expected Results\n"
+                "No explanations before or after the table."
             ),
             ("human", f"Title: {safe_title}\nDescription/Content: {safe_description}")
         ])
@@ -241,7 +249,7 @@ if submitted:
     st.markdown(test_case_md)
     df = parse_markdown_table(test_case_md)
     if not df.empty:
-        st.dataframe(df, use_container_width=True)
+        st.dataframe(df, use_container_width=True, hide_index=True)
     else:
         st.warning("No valid table detected; review LLM output.")
 
@@ -260,4 +268,3 @@ if submitted:
 
 # --- Final Tips ---
 st.info("Never hard-code production secrets! Use Streamlit secrets or environment variables for all API keys and tokens.")
-
